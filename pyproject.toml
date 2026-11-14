@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flipper-zero-mcp"
+version = "0.2.0"
+description = "Local MCP server that drives a Flipper Zero over serial for Claude Code agents."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+dependencies = [
+    "mcp>=1.2",
+    "pyserial>=3.5",
+]
+
+[project.scripts]
+flipper-mcp = "flipper_mcp.server:main"
+
+[tool.setuptools]
+packages = ["flipper_mcp", "flipper_mcp.tools"]

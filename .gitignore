@@ -16,3 +16,10 @@ venv/
 /scratch/
 /tmp/
 screenshot_*.png
+
+# Per-user task-knowledge notes: the knowledge/ folder ships only its README and
+# .gitignore; the notes themselves are local memory and are never committed.
+# (knowledge/.gitignore enforces the same rule from inside the folder.)
+/knowledge/*
+!/knowledge/.gitignore
+!/knowledge/README.md
