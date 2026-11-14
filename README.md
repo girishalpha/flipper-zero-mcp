@@ -4,7 +4,7 @@ A small MCP server that lets an AI agent (Claude Code, Claude Desktop, or any
 MCP client) drive a Flipper Zero over USB: press buttons, see the screen, run
 CLI commands, manage files, and capture radio/IR/RFID input.
 
-It is one Python file with two dependencies. No custom firmware, no companion
+It is a small, dependency-light Python package. No custom firmware, no companion
 app on the Flipper, no extra hardware.
 
 ![Screenshot returned by flipper_screenshot](docs/screenshot.png)
@@ -22,6 +22,12 @@ app on the Flipper, no extra hardware.
   scripts, transmit saved Sub-GHz files, set the LED and vibration motor.
 - **Diagnose itself** — `flipper_status` reports whether the Flipper is
   connected, the port is free, the CLI answers and the screen can be captured.
+- **Survey before acting** — `flipper_index` gives one-call structural context
+  (firmware, radio, SD tree); `flipper_find` locates files by name.
+- **Remember what it learns** — a per-user, git-ignored `knowledge/` folder lets
+  the agent save and reuse task notes with
+  `flipper_kb_save` / `_list` / `_read` / `_search`, so similar future tasks
+  start from prior work instead of scratch.
 
 Full list: [docs/TOOLS.md](docs/TOOLS.md).
 
@@ -40,11 +46,19 @@ work, but they have not been tested.
 ```bash
 git clone https://github.com/girishalpha/flipper-zero-mcp.git
 cd flipper-zero-mcp
-pip install -r requirements.txt
-python flipper_mcp_server.py --selftest
+pip install -r requirements.txt        # or: pip install -e .  (adds the `flipper-mcp` command)
+python -m flipper_mcp --selftest
 ```
 
 The self-test prints the device info and SD card status, then `self-test OK`.
+
+You can start the server three equivalent ways:
+
+```bash
+python -m flipper_mcp          # preferred
+flipper-mcp                    # after `pip install -e .`
+python flipper_mcp_server.py   # legacy entry point, still supported
+```
 
 ### Claude Code
 
@@ -92,6 +106,38 @@ through menus while watching the result.
   requests the screen stream, takes one 128x64 frame, stops the session and
   encodes the frame as a PNG. The few protobuf messages involved are
   encoded by hand, so no generated protobuf code is needed.
+
+## Project layout
+
+The server is split into a small helper core and one module per task domain, so
+each capability has an obvious home and new ones are easy to add:
+
+```
+flipper_mcp/
+├── app.py            shared FastMCP instance
+├── server.py         wires the tools together + main()/--selftest
+├── transport.py      Flipper serial session + port detection   ┐
+├── protocol.py       hand-rolled protobuf decode                ├ helper core
+├── imaging.py        framebuffer → PNG                          │
+├── knowledge_base.py task-knowledge file helpers                ┘
+└── tools/            one file per task domain
+    ├── device.py   info, raw CLI, status, power, LED/vibro, listen
+    ├── storage.py  list/read/download/upload/mkdir/delete
+    ├── gui.py      press, navigate, unlock, screenshot
+    ├── apps.py     loader open/close, launch .fap, run JS
+    ├── survey.py   index, find
+    ├── knowledge.py  kb_list/read/search/save
+    ├── subghz.py   Sub-GHz transmit
+    └── badusb.py   author + run DuckyScript
+```
+
+`flipper_mcp_server.py` at the repo root is a thin compatibility shim that keeps
+older MCP configs working. **To add a new task domain** (e.g. NFC, RFID, IR,
+GPIO), drop a `tools/<name>.py` that registers its `@mcp.tool()` functions and
+add `"<name>"` to `_MODULES` in `tools/__init__.py`.
+
+The `knowledge/` folder is per-user local memory: only its `README.md` and
+`.gitignore` are committed — saved notes are git-ignored and never pushed.
 
 ## Things to know
 
