@@ -4,3 +4,15 @@ __pycache__/
 venv/
 .env
 .claude/
+
+# Local capture / crack artifacts (never commit these)
+*.pcap
+*.pcapng
+*.cap
+*.hc22000
+*.hccapx
+
+# Local scratch, downloads and saved screenshots
+/scratch/
+/tmp/
+screenshot_*.png

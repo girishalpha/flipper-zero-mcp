@@ -456,6 +456,179 @@ def flipper_js_run(script: str, timeout: int = 60) -> str:
 
 
 @mcp.tool()
+def flipper_launch_fap(fap_path: str) -> str:
+    """Launch an external .fap app by its full SD path, e.g.
+    '/ext/apps/GPIO/esp32_wifi_marauder.fap'. External apps are NOT in
+    `loader list` (only built-ins are), and launching a GUI app does not return a
+    CLI prompt - waiting for one wedges the port. This fires the command and
+    returns immediately; follow with flipper_screenshot to see the app, and
+    flipper_navigate to drive it. Find paths with flipper_storage_list."""
+    with Flipper() as f:
+        f.s.write(f'loader open "{fap_path}"\r'.encode())
+        time.sleep(2.0)
+        f.s.reset_input_buffer()
+    return f"launch sent: {fap_path} (use flipper_screenshot to view, flipper_navigate to drive)"
+
+
+@mcp.tool()
+def flipper_index(depth: int = 2, max_calls: int = 80) -> str:
+    """Survey the device before a task, WITH SUBSTRUCTURE. Returns
+    firmware/hardware/region, running app and SD free space, then a tree of /ext
+    down to `depth` levels with per-folder file/subdir counts. Folders with many
+    subdirs are counted but not expanded; a call budget (max_calls) keeps it fast.
+    One call = full structural context. Pass a higher depth for more. Read-only."""
+    with Flipper() as f:
+        di = {r.split(":")[0].strip(): r.split(":", 1)[1].strip()
+              for r in f.cli("device_info", 20).splitlines() if ":" in r}
+        L = ["# FLIPPER INDEX",
+             "device  : %s  fw %s (%s)  region %s" % (
+                 di.get("hardware_name", "?"), di.get("firmware_version", "?"),
+                 di.get("firmware_origin_fork", "?"), di.get("hardware_region", "?")),
+             "radio   : stack %s.%s  ble_mac %s" % (
+                 di.get("radio_stack_major", "?"), di.get("radio_stack_minor", "?"),
+                 di.get("radio_ble_mac", "?")),
+             "running : " + f.cli("loader info"),
+             "sd      : " + " | ".join(x.strip() for x in f.cli("storage info /ext", 15).splitlines()[:3]),
+             "", "/ext tree (folder: files/subdirs):"]
+        budget = [max_calls]
+
+        def walk(path, d, prefix):
+            if budget[0] <= 0:
+                return
+            budget[0] -= 1
+            out = f.cli(f'storage list "{path}"', 40)
+            if "error" in out.lower():
+                return
+            dirs = [l.split("[D]", 1)[1].strip() for l in out.splitlines() if "[D]" in l]
+            L.append("%s%s: %d files, %d dirs" % (prefix, path.rsplit("/", 1)[-1] or "/ext",
+                                                  out.count("[F]"), len(dirs)))
+            if d > 0 and 0 < len(dirs) <= 30:
+                for sub in dirs:
+                    if budget[0] <= 0:
+                        L.append(prefix + "  ...(budget reached)")
+                        break
+                    walk(path.rstrip("/") + "/" + sub, d - 1, prefix + "  ")
+            elif len(dirs) > 30:
+                L.append(prefix + "  (%d subdirs - not expanded)" % len(dirs))
+        walk("/ext", depth, "")
+    return "\n".join(L)
+
+
+@mcp.tool()
+def flipper_find(name: str, path: str = "/ext", max_calls: int = 120) -> str:
+    """Recursively search the SD for files/folders whose name contains `name`
+    (case-insensitive), starting at `path`. Call-budgeted so it stays fast on big
+    trees. Returns matching full paths. Great for 'where is X' before a task."""
+    q = name.lower()
+    hits = []
+    budget = [max_calls]
+    with Flipper() as f:
+        def walk(p):
+            if budget[0] <= 0:
+                return
+            budget[0] -= 1
+            out = f.cli(f'storage list "{p}"', 40)
+            if "error" in out.lower():
+                return
+            subdirs = []
+            for l in out.splitlines():
+                if "[F]" in l:
+                    fn = l.split("[F]", 1)[1].strip().rsplit(" ", 1)[0].strip()
+                    if q in fn.lower():
+                        hits.append(p.rstrip("/") + "/" + fn)
+                elif "[D]" in l:
+                    dn = l.split("[D]", 1)[1].strip()
+                    if q in dn.lower():
+                        hits.append(p.rstrip("/") + "/" + dn + "/")
+                    subdirs.append(dn)
+            for dn in subdirs:
+                if budget[0] <= 0:
+                    break
+                walk(p.rstrip("/") + "/" + dn)
+        walk(path)
+    return "\n".join(hits[:100]) or f"no match for {name!r} (searched ~{max_calls - budget[0]} dirs)"
+
+
+# ---- persistent task knowledge base (PC-side, lives in the repo) ----
+KB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "knowledge")
+
+
+def _slug(s):
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-") or "note"
+
+
+@mcp.tool()
+def flipper_kb_list() -> str:
+    """List saved task-knowledge notes (the repo's memory of past tasks). Each
+    note is a topic the agent learned; read one with flipper_kb_read. Check this
+    at the start of a task to reuse prior work instead of starting from scratch."""
+    if not os.path.isdir(KB_DIR):
+        return "no knowledge yet - save learnings with flipper_kb_save"
+    out = []
+    for fn in sorted(os.listdir(KB_DIR)):
+        if not fn.endswith(".md"):
+            continue
+        first = ""
+        try:
+            with open(os.path.join(KB_DIR, fn), encoding="utf-8") as fh:
+                for line in fh:
+                    if line.strip():
+                        first = line.strip().lstrip("# ")
+                        break
+        except Exception:
+            pass
+        out.append("- %s : %s" % (fn[:-3], first))
+    return "\n".join(out) or "no knowledge yet"
+
+
+@mcp.tool()
+def flipper_kb_read(topic: str) -> str:
+    """Read a saved task-knowledge note by topic (slug or title)."""
+    p = os.path.join(KB_DIR, _slug(topic) + ".md")
+    if not os.path.isfile(p):
+        return f"no note '{_slug(topic)}' - flipper_kb_list to see topics"
+    with open(p, encoding="utf-8") as fh:
+        return fh.read()
+
+
+@mcp.tool()
+def flipper_kb_search(query: str) -> str:
+    """Search all task-knowledge notes for a term; returns matching notes+lines.
+    Run at the START of a task to find what was already learned about it."""
+    if not os.path.isdir(KB_DIR):
+        return "no knowledge yet"
+    q = query.lower()
+    hits = []
+    for fn in sorted(os.listdir(KB_DIR)):
+        if not fn.endswith(".md"):
+            continue
+        with open(os.path.join(KB_DIR, fn), encoding="utf-8") as fh:
+            for i, line in enumerate(fh, 1):
+                if q in line.lower():
+                    hits.append("%s:%d: %s" % (fn[:-3], i, line.strip()))
+    return "\n".join(hits[:60]) or f"no matches for {query!r}"
+
+
+@mcp.tool()
+def flipper_kb_save(topic: str, content: str, append: bool = True) -> str:
+    """Record a learning for future tasks, under the repo's knowledge/ folder,
+    keyed by topic. append=True adds a timestamped entry to the topic;
+    append=False replaces it. Save what was NON-OBVIOUS: gotchas, the working
+    sequence, device quirks, dead-ends - so similar future tasks reuse it instead
+    of rediscovering. Do this at the end of any task that taught you something."""
+    os.makedirs(KB_DIR, exist_ok=True)
+    p = os.path.join(KB_DIR, _slug(topic) + ".md")
+    stamp = time.strftime("%Y-%m-%d %H:%M")
+    if append and os.path.isfile(p):
+        with open(p, "a", encoding="utf-8") as fh:
+            fh.write(f"\n\n## {stamp}\n{content}\n")
+    else:
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(f"# {topic}\n\n## {stamp}\n{content}\n")
+    return f"saved -> knowledge/{_slug(topic)}.md"
+
+
+@mcp.tool()
 def flipper_apps_running() -> str:
     """Show the currently running app (loader info)."""
     with Flipper() as f:

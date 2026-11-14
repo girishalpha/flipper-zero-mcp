@@ -73,3 +73,28 @@ Paths are Flipper paths: `/ext` is the SD card, `/int` is internal storage.
 
 Transmit only on legal frequencies at devices you own, and run BadUSB scripts
 only on computers you own or are authorised to test.
+
+## Orientation and search
+
+| Tool | Arguments | What it does |
+|---|---|---|
+| `flipper_index` | `depth`, `max_calls` | One-call survey: firmware/hardware/region, running app, SD free, and an `/ext` tree with per-folder file/subdir counts down to `depth`. Huge folders are counted but not expanded; a call budget keeps it fast. Run first to get oriented. |
+| `flipper_find` | `name`, `path`, `max_calls` | Recursively search the SD for files/folders whose name contains `name`. Budgeted. |
+| `flipper_launch_fap` | `fap_path` | Launch an external `.fap` by its SD path without blocking (external apps are not in `loader list`, and a blocking launch wedges the port). Follow with `flipper_screenshot` / `flipper_navigate`. |
+| `flipper_js_run` | `script`, `timeout` | Run a JavaScript program on the device (mJS engine) and return its output. |
+
+## Task knowledge base
+
+A local `knowledge/` folder is the agent's growing memory of past tasks, so a
+similar future task reuses learnings instead of starting from scratch. The notes
+are **per-user and git-ignored**; only the folder's `README.md` is committed.
+
+| Tool | Arguments | What it does |
+|---|---|---|
+| `flipper_kb_list` | — | List saved topics. |
+| `flipper_kb_search` | `query` | Search all notes for a term. Run at the **start** of a task. |
+| `flipper_kb_read` | `topic` | Read one note. |
+| `flipper_kb_save` | `topic`, `content`, `append` | Record a learning (timestamped). Run at the **end** of a task. |
+
+Suggested pattern for any task: `flipper_index` + `flipper_kb_search` to orient →
+do the work → `flipper_kb_save` the non-obvious bits.

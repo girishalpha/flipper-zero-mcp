@@ -1,0 +1,5 @@
+# Task-knowledge notes are per-user, local memory - not committed.
+# Only this folder's README (and this .gitignore) are shared.
+*
+!.gitignore
+!README.md
