@@ -1,6 +1,6 @@
 # flipper-zero-mcp
 
-[![M8ven Score](https://m8ven.ai/badge/mcp/girishalpha-flipper-zero-mcp-1bouq7?v=09be7684d0c9b6da091dd0c235c02671)](https://m8ven.ai/mcp/girishalpha-flipper-zero-mcp-1bouq7?s=readme)
+[![M8ven Score](https://m8ven.ai/badge/mcp/girishalpha-flipper-zero-mcp-1bouq7?v=09be7684d0c9b6da091dd0c235c02671&variant=verified)](https://m8ven.ai/mcp/girishalpha-flipper-zero-mcp-1bouq7?s=readme)
 
 A small MCP server that lets an AI agent (Claude Code, Claude Desktop, or any
 MCP client) drive a Flipper Zero over USB: press buttons, see the screen, run
