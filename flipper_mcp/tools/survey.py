@@ -5,11 +5,11 @@ tree); `flipper_find` locates files by name. Both are call-budgeted so they stay
 fast on large SD cards, and both are read-only.
 """
 
-from ..app import mcp
+from ..app import READ_ONLY, mcp
 from ..transport import Flipper
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def flipper_index(depth: int = 2, max_calls: int = 80) -> str:
     """Survey the device before a task, WITH SUBSTRUCTURE. Returns
     firmware/hardware/region, running app and SD free space, then a tree of /ext
@@ -53,7 +53,7 @@ def flipper_index(depth: int = 2, max_calls: int = 80) -> str:
     return "\n".join(L)
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def flipper_find(name: str, path: str = "/ext", max_calls: int = 120) -> str:
     """Recursively search the SD for files/folders whose name contains `name`
     (case-insensitive), starting at `path`. Call-budgeted so it stays fast on big

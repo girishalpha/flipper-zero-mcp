@@ -9,7 +9,7 @@ import time
 
 from mcp.server.fastmcp import Image
 
-from ..app import mcp
+from ..app import ACTION, ADDITIVE, mcp
 from ..imaging import frame_png
 from ..transport import Flipper
 
@@ -26,7 +26,7 @@ def _with_screen(f: Flipper, text: str):
     return [text, Image(data=frame_png(data, flipped=orientation == 1), format="png")]
 
 
-@mcp.tool()
+@mcp.tool(annotations=ACTION)
 def flipper_press(button: str, kind: str = "short", screenshot: bool = False):
     """Send one button press. button: up/down/left/right/ok/back. kind: short/long/press/release.
     With screenshot=True the screen after the press is returned too."""
@@ -35,7 +35,7 @@ def flipper_press(button: str, kind: str = "short", screenshot: bool = False):
         return _with_screen(f, out) if screenshot else out
 
 
-@mcp.tool()
+@mcp.tool(annotations=ACTION)
 def flipper_navigate(keys: str, delay_ms: int = 250, screenshot: bool = False):
     """Send a sequence of button presses to navigate menus. keys is comma- or
     space-separated, e.g. 'down,down,ok' or 'back back up ok'. Valid keys:
@@ -55,7 +55,7 @@ def flipper_navigate(keys: str, delay_ms: int = 250, screenshot: bool = False):
         return _with_screen(f, out) if screenshot else out
 
 
-@mcp.tool()
+@mcp.tool(annotations=ACTION)
 def flipper_unlock():
     """Unlock a keypad-locked Flipper (Back x3) and return the screen. While
     locked, screenshots are refused. A PIN lock cannot be cleared this way:
@@ -67,7 +67,7 @@ def flipper_unlock():
         return _with_screen(f, "sent Back x3")
 
 
-@mcp.tool()
+@mcp.tool(annotations=ADDITIVE)
 def flipper_screenshot(save_path: str = "") -> Image:
     """Capture the Flipper's current screen (128x64, upscaled 4x) as a PNG so you
     can see what a press/navigate did. Optionally also save it to save_path on the PC."""

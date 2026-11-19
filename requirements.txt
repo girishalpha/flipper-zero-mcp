@@ -1,2 +1,2 @@
-mcp>=1.2
+mcp>=1.7
 pyserial>=3.5

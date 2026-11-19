@@ -4,18 +4,18 @@ import time
 
 import serial
 
-from ..app import mcp
+from ..app import ADDITIVE, DESTRUCTIVE, EXTERNAL, EXTERNAL_DESTRUCTIVE, READ_ONLY, mcp
 from ..transport import Flipper, find_port
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def flipper_info() -> str:
     """Return the Flipper's device_info (firmware, hardware, radio, battery region)."""
     with Flipper() as f:
         return f.cli("device_info", 20)
 
 
-@mcp.tool()
+@mcp.tool(annotations=EXTERNAL_DESTRUCTIVE)
 def flipper_run_cli(command: str, timeout: int = 15) -> str:
     """Run a raw Flipper CLI command and return its output. Full control escape
     hatch: e.g. 'subghz tx_from_file /ext/subghz/foo.sub 433920000', 'nfc',
@@ -24,7 +24,7 @@ def flipper_run_cli(command: str, timeout: int = 15) -> str:
         return f.cli(command, timeout)
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def flipper_status() -> str:
     """Health check: is the Flipper on USB, is the port free, does the CLI
     answer, which app is running, and can the screen be captured (i.e. is it
@@ -54,7 +54,7 @@ def flipper_status() -> str:
     return "\n".join(lines)
 
 
-@mcp.tool()
+@mcp.tool(annotations=EXTERNAL)
 def flipper_listen(command: str, seconds: int = 10) -> str:
     """Run a CLI command that listens until interrupted, for `seconds`, then
     stop it (Ctrl+C) and return everything it captured. Use for receive/read
@@ -65,7 +65,7 @@ def flipper_listen(command: str, seconds: int = 10) -> str:
         return f.cli_timed(command, max(1, seconds)) or "(nothing captured)"
 
 
-@mcp.tool()
+@mcp.tool(annotations=ADDITIVE)
 def flipper_led(r: int, g: int, b: int) -> str:
     """Set the RGB status LED (each channel 0-255)."""
     with Flipper() as f:
@@ -74,14 +74,14 @@ def flipper_led(r: int, g: int, b: int) -> str:
     return f"LED set to ({r},{g},{b})"
 
 
-@mcp.tool()
+@mcp.tool(annotations=ADDITIVE)
 def flipper_vibro(on: bool) -> str:
     """Turn the vibration motor on or off."""
     with Flipper() as f:
         return f.cli(f"vibro {1 if on else 0}") or ("vibro on" if on else "vibro off")
 
 
-@mcp.tool()
+@mcp.tool(annotations=DESTRUCTIVE)
 def flipper_reboot(mode: str = "normal") -> str:
     """Reboot the Flipper. mode: normal | dfu (bootloader)."""
     with Flipper() as f:

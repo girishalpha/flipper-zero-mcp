@@ -10,12 +10,19 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
 dependencies = [
-    "mcp>=1.2",
+    "mcp>=1.7",
     "pyserial>=3.5",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
 
 [project.scripts]
 flipper-mcp = "flipper_mcp.server:main"
 
 [tool.setuptools]
 packages = ["flipper_mcp", "flipper_mcp.tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -2,18 +2,18 @@
 
 import time
 
-from ..app import mcp
+from ..app import ACTION, EXTERNAL_DESTRUCTIVE, READ_ONLY, mcp
 from ..transport import Flipper
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def flipper_apps_running() -> str:
     """Show the currently running app (loader info)."""
     with Flipper() as f:
         return f.cli("loader info", 15)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ACTION)
 def flipper_loader_open(app: str, args: str = "") -> str:
     """Launch an app by name, optionally with an argument (e.g. a file path).
     Example: flipper_loader_open('Sub-GHz'), or open an app with a saved file."""
@@ -22,14 +22,14 @@ def flipper_loader_open(app: str, args: str = "") -> str:
         return f.cli(cmd, 20) or f"opened {app}"
 
 
-@mcp.tool()
+@mcp.tool(annotations=ACTION)
 def flipper_loader_close() -> str:
     """Close the currently running app."""
     with Flipper() as f:
         return f.cli("loader close", 15) or "closed"
 
 
-@mcp.tool()
+@mcp.tool(annotations=ACTION)
 def flipper_launch_fap(fap_path: str) -> str:
     """Launch an external .fap app by its full SD path, e.g.
     '/ext/apps/GPIO/esp32_wifi_marauder.fap'. External apps are NOT in
@@ -44,7 +44,7 @@ def flipper_launch_fap(fap_path: str) -> str:
     return f"launch sent: {fap_path} (use flipper_screenshot to view, flipper_navigate to drive)"
 
 
-@mcp.tool()
+@mcp.tool(annotations=EXTERNAL_DESTRUCTIVE)
 def flipper_js_run(script: str, timeout: int = 60) -> str:
     """Run a JavaScript program on the Flipper (mJS engine) and return its output.
     Full on-device automation: gui, gpio, serial, storage, notify, badusb, etc.

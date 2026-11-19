@@ -6,10 +6,10 @@ and save what you learned at the end.
 """
 
 from .. import knowledge_base as kb
-from ..app import mcp
+from ..app import DESTRUCTIVE, READ_ONLY, mcp
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def flipper_kb_list() -> str:
     """List saved task-knowledge notes (the repo's memory of past tasks). Each
     note is a topic the agent learned; read one with flipper_kb_read. Check this
@@ -17,20 +17,20 @@ def flipper_kb_list() -> str:
     return kb.list_notes()
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def flipper_kb_read(topic: str) -> str:
     """Read a saved task-knowledge note by topic (slug or title)."""
     return kb.read_note(topic)
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def flipper_kb_search(query: str) -> str:
     """Search all task-knowledge notes for a term; returns matching notes+lines.
     Run at the START of a task to find what was already learned about it."""
     return kb.search_notes(query)
 
 
-@mcp.tool()
+@mcp.tool(annotations=DESTRUCTIVE)
 def flipper_kb_save(topic: str, content: str, append: bool = True) -> str:
     """Record a learning for future tasks, under the repo's knowledge/ folder,
     keyed by topic. append=True adds a timestamped entry to the topic;
