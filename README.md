@@ -141,6 +141,22 @@ add `"<name>"` to `_MODULES` in `tools/__init__.py`.
 The `knowledge/` folder is per-user local memory: only its `README.md` and
 `.gitignore` are committed — saved notes are git-ignored and never pushed.
 
+## Development
+
+```bash
+pip install -e ".[dev]"
+python -m pytest                           # or, with no extra dependencies:
+python -m unittest discover -s tests
+```
+
+The tests need no Flipper: `tests/fakes.py` provides a fake serial port, so the
+transport, protocol, imaging, knowledge base and tool logic all run offline.
+
+Every tool declares MCP annotations (`readOnlyHint`, `destructiveHint`,
+`idempotentHint`, `openWorldHint`) so clients can warn before risky calls. Pick a
+preset from `flipper_mcp/app.py` when adding a tool, e.g.
+`@mcp.tool(annotations=READ_ONLY)`; a test fails if a tool leaves them out.
+
 ## Things to know
 
 - **A locked Flipper refuses screenshots.** On Momentum, RPC is blocked while
