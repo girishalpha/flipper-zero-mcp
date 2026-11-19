@@ -1,7 +1,10 @@
 import unittest
 from unittest import mock
 
-from fakes import FakeSerial, screen_frame_message
+try:
+    from tests.fakes import FakeSerial, screen_frame_message
+except ImportError:
+    from fakes import FakeSerial, screen_frame_message
 
 from flipper_mcp import transport
 

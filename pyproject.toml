@@ -7,10 +7,10 @@ name = "flipper-zero-mcp"
 version = "0.2.0"
 description = "Local MCP server that drives a Flipper Zero over serial for Claude Code agents."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { file = "LICENSE" }
 dependencies = [
-    "mcp>=1.7",
+    "mcp>=1.7,<2",
     "pyserial>=3.5",
 ]
 
