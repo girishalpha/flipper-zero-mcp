@@ -51,7 +51,7 @@ def flipper_storage_write(remote_path: str, local_path: str) -> str:
     with Flipper() as f:
         f.write_file(remote_path, data)
         remote_md5 = f.cli(f'storage md5 "{remote_path}"', 60).split()[-1].lower()
-    ok = remote_md5 == hashlib.md5(data).hexdigest()
+    ok = remote_md5 == hashlib.md5(data, usedforsecurity=False).hexdigest()  # nosec B324
     return f"{'OK' if ok else 'MISMATCH'}: {len(data)} bytes -> {remote_path}"
 
 

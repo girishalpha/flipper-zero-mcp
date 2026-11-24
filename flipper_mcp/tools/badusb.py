@@ -30,7 +30,7 @@ def flipper_badusb_create(filename: str, ducky_script: str) -> str:
         f.cli(f'storage mkdir {BADUSB_DIR}')
         f.write_file(path, data)
         md5 = f.cli(f'storage md5 "{path}"', 60).split()[-1].lower()
-    ok = md5 == hashlib.md5(data).hexdigest()
+    ok = md5 == hashlib.md5(data, usedforsecurity=False).hexdigest()  # nosec B324
     return f"{'OK' if ok else 'MISMATCH'}: wrote {len(data)} bytes -> {path}"
 
 
