@@ -1,0 +1,12 @@
+services:
+  flipper-mcp:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: true
+    devices:
+      - /dev/ttyACM0:/dev/ttyACM0
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

@@ -1,0 +1,48 @@
+name: security
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 4 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks Secret Scanner
+        uses: gitleaks/gitleaks-action@v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_SUMMARY: true
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install audit tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install bandit pip-audit
+
+      - name: AST Security Scan (Bandit)
+        run: |
+          bandit -r flipper_mcp -ll
+
+      - name: Dependency Vulnerability Audit (pip-audit)
+        run: |
+          pip-audit -r requirements.txt

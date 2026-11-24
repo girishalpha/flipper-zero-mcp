@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "flipper": {
+      "command": "python",
+      "args": ["-m", "flipper_mcp"]
+    }
+  }
+}

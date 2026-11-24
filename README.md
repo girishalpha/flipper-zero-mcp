@@ -1,5 +1,9 @@
 # flipper-zero-mcp
 
+[![girishalpha/flipper-zero-mcp MCP server](https://glama.ai/mcp/servers/girishalpha/flipper-zero-mcp/badges/score.svg)](https://glama.ai/mcp/servers/girishalpha/flipper-zero-mcp)
+[![CI](https://github.com/girishalpha/flipper-zero-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/girishalpha/flipper-zero-mcp/actions/workflows/ci.yml)
+[![security](https://github.com/girishalpha/flipper-zero-mcp/actions/workflows/security.yml/badge.svg)](https://github.com/girishalpha/flipper-zero-mcp/actions/workflows/security.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![M8ven Score](https://m8ven.ai/badge/mcp/girishalpha-flipper-zero-mcp-1bouq7?v=09be7684d0c9b6da091dd0c235c02671&variant=verified)](https://m8ven.ai/mcp/girishalpha-flipper-zero-mcp-1bouq7?s=readme)
 
 A small MCP server that lets an AI agent (Claude Code, Claude Desktop, or any
@@ -82,6 +86,21 @@ Add to `claude_desktop_config.json`:
   }
 }
 ```
+
+*(Sample configurations for Cursor, Windsurf, Cline, and Docker Compose are provided in [`examples/`](examples/).)*
+
+### Docker (Glama & Containerized Hosts)
+
+```bash
+docker build -t flipper-zero-mcp .
+docker run -i --rm --device=/dev/ttyACM0 flipper-zero-mcp
+```
+
+---
+
+## Agent Skills & System Prompts
+
+To enable AI assistants to autonomously operate Flipper Zero with safety best practices, review the [Flipper Zero MCP Assistant Skill](skills/flipper-zero-mcp/SKILL.md) (or use `.cursorrules` / `CLAUDE.md`).
 
 ### Configuration
 

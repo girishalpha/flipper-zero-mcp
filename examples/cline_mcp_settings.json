@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "flipper": {
+      "command": "python",
+      "args": ["-m", "flipper_mcp"],
+      "disabled": false,
+      "autoApprove": [
+        "flipper_status",
+        "flipper_screenshot",
+        "flipper_index",
+        "flipper_find",
+        "flipper_storage_list",
+        "flipper_storage_info",
+        "flipper_apps_running",
+        "flipper_kb_list",
+        "flipper_kb_read",
+        "flipper_kb_search"
+      ]
+    }
+  }
+}

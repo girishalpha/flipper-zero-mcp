@@ -1,0 +1,5 @@
+# Cursor Rules for Flipper Zero MCP
+
+- This repository implements an MCP server for Flipper Zero devices over USB serial.
+- Always run the offline test suite (`pytest -v`) before pushing changes.
+- Ensure all 32 MCP tools declare appropriate descriptions and schema hints.

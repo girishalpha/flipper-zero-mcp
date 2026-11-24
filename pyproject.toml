@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flipper-zero-mcp"
-version = "0.2.0"
+version = "0.2.1"
 description = "Local MCP server that drives a Flipper Zero over serial for Claude Code agents."
 readme = "README.md"
 requires-python = ">=3.10"

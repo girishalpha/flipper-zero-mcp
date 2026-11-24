@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist for test fixtures and lockfiles"
+paths = [
+    '''tests/.*''',
+    '''uv\.lock''',
+]
